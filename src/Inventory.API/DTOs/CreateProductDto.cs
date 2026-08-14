@@ -1,12 +1,9 @@
-
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.API.Models
+namespace Inventory.API.DTOs
 {
-    public class Product
+    public class CreateProcutDto
     {
-        public Guid Id { get; set; }
-
         [Required]
         [MaxLength(50)]
         public string Code { get; set; } = string.Empty;
@@ -17,8 +14,5 @@ namespace Inventory.API.Models
 
         [Required]
         public int Balance { get; set; }
-
-        [Timestamp]
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

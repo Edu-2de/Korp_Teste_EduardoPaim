@@ -1,0 +1,14 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Ordena using statements automaticamente
+dotnet_sort_system_directives_first = true
+
+# Aspas / convenções de nomenclatura (opcional, mas comum)
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = true:suggestion
