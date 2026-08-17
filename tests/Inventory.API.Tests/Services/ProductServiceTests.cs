@@ -68,6 +68,40 @@ namespace Inventory.API.Tests.Services
 
             Assert.Equal(2, result.Count());
         }
+
+        [Fact]
+        public async Task DecreaseBalanceAsync_ShouldReduceBalance()
+        {
+            using var context = CreateInMemoryContext(nameof(DecreaseBalanceAsync_ShouldReduceBalance));
+            var service = new ProductService(context);
+            var product = await service.CreateAsync(new CreateProductDto { Code = "P001", Description = "Test", Balance = 10 });
+
+            await service.DecreaseBalanceAsync(product.Id, 3);
+
+            var updated = await service.GetByIdAsync(product.Id);
+            Assert.Equal(7, updated!.Balance);
+        }
+
+        [Fact]
+        public async Task DecreaseBalanceAsync_ShouldThrow_WhenProductNotFound()
+        {
+            using var context = CreateInMemoryContext(nameof(DecreaseBalanceAsync_ShouldThrow_WhenProductNotFound));
+            var service = new ProductService(context);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                service.DecreaseBalanceAsync(Guid.NewGuid(), 1));
+        }
+
+        [Fact]
+        public async Task DecreaseBalanceAsync_ShouldThrow_WhenInsufficientBalance()
+        {
+            using var context = CreateInMemoryContext(nameof(DecreaseBalanceAsync_ShouldThrow_WhenInsufficientBalance));
+            var service = new ProductService(context);
+            var product = await service.CreateAsync(new CreateProductDto { Code = "P001", Description = "Test", Balance = 1 });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.DecreaseBalanceAsync(product.Id, 2));
+        }
     }
 
     public class ProductTests
@@ -130,5 +164,10 @@ namespace Inventory.API.Tests.Services
 
             Assert.Equal(8, product.Balance);
         }
+
+
+
     }
+
+
 }

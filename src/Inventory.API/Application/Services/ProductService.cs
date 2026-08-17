@@ -41,5 +41,19 @@ namespace Inventory.API.Application.Services
             return product;
 
         }
+
+        public async Task DecreaseBalanceAsync(Guid productId, int quantity)
+        {
+            var product = await _context.Products.FindAsync(productId)
+                ?? throw new KeyNotFoundException($"Product {productId} not found");
+
+            product.DecreaseBalance(quantity);
+
+            await _context.SaveChangesAsync();
+
+
+
+
+        }
     }
 }
