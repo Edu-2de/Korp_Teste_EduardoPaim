@@ -12,8 +12,12 @@ namespace Shared.Kernel.Extensions
         {
             builder.Host.UseSerilog((context, services, configuration) =>
             {
+                var minimumLevel = context.HostingEnvironment.IsEnvironment("Testing")
+                    ? LogEventLevel.Fatal
+                    : LogEventLevel.Information;
+
                 configuration
-                    .MinimumLevel.Information()
+                    .MinimumLevel.Is(minimumLevel)
                     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                     .Enrich.FromLogContext()
