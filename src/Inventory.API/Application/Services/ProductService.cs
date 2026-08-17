@@ -32,7 +32,7 @@ namespace Inventory.API.Application.Services
                 ($"Product with code '{dto.Code}' already exists");
             }
 
-            var product = new Product(dto.Code, dto.Description, dto.Balance);
+            var product = new Product(code, dto.Description, dto.Balance);
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();

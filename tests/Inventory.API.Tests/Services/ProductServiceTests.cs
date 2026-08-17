@@ -45,6 +45,41 @@ namespace Inventory.API.Tests.Services
         }
 
         [Fact]
+        public async Task CreateAsync_ShouldGenerateCode_WhenCodeIsNotProvided()
+        {
+            using var context = CreateInMemoryContext(nameof(CreateAsync_ShouldGenerateCode_WhenCodeIsNotProvided));
+            var service = new ProductService(context);
+
+            var result = await service.CreateAsync(new CreateProductDto { Description = "Sem código", Balance = 5 });
+
+            Assert.False(string.IsNullOrWhiteSpace(result.Code));
+            Assert.StartsWith("PROD-", result.Code);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ShouldGenerateCode_WhenCodeIsEmptyOrWhitespace()
+        {
+            using var context = CreateInMemoryContext(nameof(CreateAsync_ShouldGenerateCode_WhenCodeIsEmptyOrWhitespace));
+            var service = new ProductService(context);
+
+            var result = await service.CreateAsync(new CreateProductDto { Code = "   ", Description = "Espaços em branco", Balance = 5 });
+
+            Assert.False(string.IsNullOrWhiteSpace(result.Code));
+            Assert.StartsWith("PROD-", result.Code);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ShouldUseProvidedCode_WhenCodeIsGiven()
+        {
+            using var context = CreateInMemoryContext(nameof(CreateAsync_ShouldUseProvidedCode_WhenCodeIsGiven));
+            var service = new ProductService(context);
+
+            var result = await service.CreateAsync(new CreateProductDto { Code = "MANUAL01", Description = "Com código", Balance = 5 });
+
+            Assert.Equal("MANUAL01", result.Code);
+        }
+
+        [Fact]
         public async Task GetByIdAsync_ShouldReturnNull_WhenProductDoesNotExist()
         {
             using var context = CreateInMemoryContext(nameof(GetByIdAsync_ShouldReturnNull_WhenProductDoesNotExist));
@@ -119,6 +154,12 @@ namespace Inventory.API.Tests.Services
         }
 
         [Fact]
+        public void Constructor_ShouldThrow_WhenDescriptionIsEmpty()
+        {
+            Assert.Throws<ArgumentException>(() => new Product("P001", "", 10));
+        }
+
+        [Fact]
         public void DecreaseBalance_ShouldReduceBalance_WhenQuantityIsValid()
         {
             var product = new Product("P001", "Test", 10);
@@ -165,9 +206,31 @@ namespace Inventory.API.Tests.Services
             Assert.Equal(8, product.Balance);
         }
 
+        [Fact]
+        public void IncreaseBalance_ShouldThrow_WhenQuantityIsZeroOrNegative()
+        {
+            var product = new Product("P001", "Test", 5);
 
+            Assert.Throws<ArgumentException>(() => product.IncreaseBalance(0));
+            Assert.Throws<ArgumentException>(() => product.IncreaseBalance(-3));
+        }
 
+        [Fact]
+        public void UpdateDescription_ShouldChangeDescription_WhenValid()
+        {
+            var product = new Product("P001", "Old Description", 5);
+
+            product.UpdateDescription("New Description");
+
+            Assert.Equal("New Description", product.Description);
+        }
+
+        [Fact]
+        public void UpdateDescription_ShouldThrow_WhenEmpty()
+        {
+            var product = new Product("P001", "Old Description", 5);
+
+            Assert.Throws<ArgumentException>(() => product.UpdateDescription(""));
+        }
     }
-
-
 }
