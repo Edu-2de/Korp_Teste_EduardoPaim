@@ -1,6 +1,7 @@
 using Inventory.API.Infrastructure.Data;
 using Inventory.API.Application.Services;
 using Microsoft.EntityFrameworkCore;
+using Shared.Kernel.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 
 var app = builder.Build();
 
+app.UseGlobalExceptionHandling();
 
 if (app.Environment.IsDevelopment())
 {

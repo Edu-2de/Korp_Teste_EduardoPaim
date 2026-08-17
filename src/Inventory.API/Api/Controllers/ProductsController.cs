@@ -1,24 +1,15 @@
-using System.Data.Common;
-using Inventory.API.Infrastructure.Data;
 using Inventory.API.Api.DTOs;
 using Inventory.API.Domain.Models;
 using Inventory.API.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Inventory.API.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductsController(IProductService _productService) : ControllerBase
     {
-        private readonly IProductService _productService;
-
-        public ProductsController(IProductService productService)
-        {
-            _productService = productService;
-        }
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetAll()
         {

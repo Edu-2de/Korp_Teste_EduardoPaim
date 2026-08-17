@@ -5,15 +5,8 @@ using Inventory.API.Api.DTOs;
 
 namespace Inventory.API.Application.Services
 {
-    public class ProductService : IProductService
+    public class ProductService(InventoryDbContext _context) : IProductService
     {
-        private readonly InventoryDbContext _context;
-
-        public ProductService(InventoryDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products.ToListAsync();
