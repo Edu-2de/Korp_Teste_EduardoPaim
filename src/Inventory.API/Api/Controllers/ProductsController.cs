@@ -24,10 +24,11 @@ namespace Inventory.API.Api.Controllers
         /// Lista todos os produtos cadastrados.
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+        [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetAll()
         {
-            return Ok(await _productService.GetAllAsync());
+            var products = await _productService.GetAllAsync();
+            return Ok(products.Select(ToResponseDto));
         }
 
         /// <summary>
@@ -35,15 +36,15 @@ namespace Inventory.API.Api.Controllers
         /// </summary>
         /// <param name="id">Identificador (GUID) do produto.</param>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProductResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Product>> GetById(Guid id)
+        public async Task<ActionResult<ProductResponseDto>> GetById(Guid id)
         {
             var product = await _productService.GetByIdAsync(id);
             if (product == null)
                 throw new KeyNotFoundException($"Product {id} not found.");
 
-            return Ok(product);
+            return Ok(ToResponseDto(product));
         }
 
         /// <summary>
@@ -52,13 +53,14 @@ namespace Inventory.API.Api.Controllers
         /// </summary>
         /// <param name="dto">Dados do produto a ser criado.</param>
         [HttpPost]
-        [ProducesResponseType(typeof(Product), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProductResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<Product>> Create(CreateProductDto dto)
+        public async Task<ActionResult<ProductResponseDto>> Create(CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            var responseDto = ToResponseDto(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, responseDto);
         }
 
         /// <summary>
@@ -77,5 +79,28 @@ namespace Inventory.API.Api.Controllers
             await _productService.DecreaseBalanceAsync(id, dto.Quantity);
             return NoContent();
         }
+
+        /// <summary>
+        /// Atualiza a descrição de um produto existente.
+        /// </summary>
+        /// <param name="id">Identificador (GUID) do produto.</param>
+        /// <param name="dto">Nova descrição do produto.</param>
+        [HttpPatch("{id}/description")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateDescription(Guid id, UpdateProductDescriptionDto dto)
+        {
+            await _productService.UpdateDescriptionAsync(id, dto.Description);
+            return NoContent();
+        }
+
+        private static ProductResponseDto ToResponseDto(Product product) => new()
+        {
+            Id = product.Id,
+            Code = product.Code,
+            Description = product.Description,
+            Balance = product.Balance
+        };
     }
 }

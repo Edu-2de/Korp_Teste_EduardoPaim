@@ -11,6 +11,25 @@ Content-Type: application/json
   "balance": 10
 }
 
+### Criar produto - sem código (espera geração automática, formato PROD-{timestamp})
+POST {{HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "description": "Produto sem código informado",
+  "balance": 20
+}
+
+### Criar produto - código só com espaços (também deve gerar automaticamente)
+POST {{HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "code": "   ",
+  "description": "Código em branco",
+  "balance": 15
+}
+
 ### Criar produto - código duplicado (espera 409)
 POST {{HostAddress}}/api/products
 Content-Type: application/json
@@ -36,7 +55,7 @@ GET {{HostAddress}}/api/products
 Accept: application/json
 
 ### Buscar produto por id (troque o id abaixo por um id real retornado no POST)
-GET {{HostAddress}}/api/products/
+GET {{HostAddress}}/api/products/{{ProductId}}
 Accept: application/json
 
 ### Buscar produto inexistente (espera 404)

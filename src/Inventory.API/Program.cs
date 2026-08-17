@@ -25,17 +25,23 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
 });
+
 builder.Services.AddScoped<IProductService, ProductService>();
 
-builder.Services.AddDbContext<InventoryDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<InventoryDbContext>(options =>
+        options.UseInMemoryDatabase("IntegrationTestsDb"));
+}
+else
+{
+    builder.Services.AddDbContext<InventoryDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 var app = builder.Build();
 
-
 app.UseSharedCorrelationId();
-app.UseGlobalExceptionHandling();
-
 app.UseGlobalExceptionHandling();
 
 if (app.Environment.IsDevelopment())
@@ -48,3 +54,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

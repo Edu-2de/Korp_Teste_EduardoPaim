@@ -10,6 +10,7 @@ namespace Inventory.API.Application.Services
         Task<Product?> GetByIdAsync(Guid id);
         Task<Product> CreateAsync(CreateProductDto dto);
         Task DecreaseBalanceAsync(Guid productId, int quantity);
+        Task UpdateDescriptionAsync(Guid productId, string newDescription);
 
     }
 }
