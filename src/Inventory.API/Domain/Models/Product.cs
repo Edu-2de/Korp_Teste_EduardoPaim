@@ -15,9 +15,6 @@ namespace Inventory.API.Domain.Models
 
         public int Balance { get; private set; }
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
-
         private Product() { }
         public Product(string code, string description, int balance)
         {

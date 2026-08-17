@@ -18,10 +18,11 @@ namespace Inventory.API.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetById(Guid id)
+        public async Task<ActionResult<Product>> GetById(Guid id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null) { return NotFound(); }
+            var product = await _productService.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Product {id} not found.");
+
             return Ok(product);
         }
 
@@ -30,6 +31,13 @@ namespace Inventory.API.Api.Controllers
         {
             var product = await _productService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+        [HttpPatch("{id}/decrease-balance")]
+        public async Task<IActionResult> DecreaseBalance(Guid id, DecreaseBalanceDto dto)
+        {
+            await _productService.DecreaseBalanceAsync(id, dto.Quantity);
+            return NoContent();
         }
     }
 }

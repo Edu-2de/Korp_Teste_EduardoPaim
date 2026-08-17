@@ -6,7 +6,7 @@ namespace Inventory.API.Api.DTOs
     {
         [Required]
         [MaxLength(50)]
-        public string Code { get; set; } = string.Empty;
+        public string? Code { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(200)]

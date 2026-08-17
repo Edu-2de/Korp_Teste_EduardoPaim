@@ -1,6 +1,76 @@
-@Inventory.API_HostAddress = http://localhost:5254
+@HostAddress = http://localhost:5254
+@ProductId = 00000000-0000-0000-0000-000000000000
 
-GET {{Inventory.API_HostAddress}}/weatherforecast/
+### Criar produto - sucesso
+POST {{HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "code": "P001",
+  "description": "Produto de teste",
+  "balance": 10
+}
+
+### Criar produto - código duplicado (espera 409)
+POST {{HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "code": "P001",
+  "description": "Duplicado",
+  "balance": 5
+}
+
+### Criar produto - balance negativo (espera 400, validação do DTO)
+POST {{HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "code": "P002",
+  "description": "Produto inválido",
+  "balance": -5
+}
+
+### Listar todos os produtos
+GET {{HostAddress}}/api/products
 Accept: application/json
 
-###
+### Buscar produto por id (troque o id abaixo por um id real retornado no POST)
+GET {{HostAddress}}/api/products/
+Accept: application/json
+
+### Buscar produto inexistente (espera 404)
+GET {{HostAddress}}/api/products/{{ProductId}}
+Accept: application/json
+
+### Debitar saldo - sucesso (espera 204, troque o id)
+PATCH {{HostAddress}}/api/products/{{ProductId}}/decrease-balance
+Content-Type: application/json
+
+{
+  "quantity": 2
+}
+
+### Debitar saldo - produto inexistente (espera 404)
+PATCH {{HostAddress}}/api/products/{{ProductId}}/decrease-balance
+Content-Type: application/json
+
+{
+  "quantity": 1
+}
+
+### Debitar saldo - saldo insuficiente (espera 409, troque o id por um produto com saldo baixo)
+PATCH {{HostAddress}}/api/products/{{ProductId}}/decrease-balance
+Content-Type: application/json
+
+{
+  "quantity": 9999
+}
+
+### Debitar saldo - quantidade inválida (espera 400, validação do DTO)
+PATCH {{HostAddress}}/api/products/{{ProductId}}/decrease-balance
+Content-Type: application/json
+
+{
+  "quantity": 0
+}

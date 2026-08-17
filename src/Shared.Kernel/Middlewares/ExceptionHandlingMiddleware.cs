@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Text.Encodings.Web;
 
 namespace Shared.Kernel.Middlewares
 {
@@ -23,6 +24,11 @@ namespace Shared.Kernel.Middlewares
             }
         }
 
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
         private static Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var (statusCode, message) = exception switch
@@ -38,7 +44,7 @@ namespace Shared.Kernel.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
 
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response, _jsonOptions));
         }
     }
 }

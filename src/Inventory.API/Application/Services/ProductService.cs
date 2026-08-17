@@ -19,11 +19,17 @@ namespace Inventory.API.Application.Services
 
         public async Task<Product> CreateAsync(CreateProductDto dto)
         {
+
+            var code = string.IsNullOrWhiteSpace(dto.Code)
+                ? GenerateProductCode()
+                : dto.Code;
+
+
             var codeExists = await _context.Products.AnyAsync(p => p.Code == dto.Code);
             if (codeExists)
             {
                 throw new InvalidOperationException
-                ($"Product with code '{dto.Code} already exists'");
+                ($"Product with code '{dto.Code}' already exists");
             }
 
             var product = new Product(dto.Code, dto.Description, dto.Balance);
@@ -33,6 +39,11 @@ namespace Inventory.API.Application.Services
 
             return product;
 
+        }
+
+        private static string GenerateProductCode()
+        {
+            return $"PROD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
         }
 
         public async Task DecreaseBalanceAsync(Guid productId, int quantity)
