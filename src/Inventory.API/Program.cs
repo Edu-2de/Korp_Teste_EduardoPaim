@@ -1,5 +1,5 @@
-using Inventory.API.Data;
-using Inventory.API.Services;
+using Inventory.API.Infrastructure.Data;
+using Inventory.API.Application.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

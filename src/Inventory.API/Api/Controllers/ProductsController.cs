@@ -1,12 +1,12 @@
 using System.Data.Common;
-using Inventory.API.Data;
-using Inventory.API.DTOs;
-using Inventory.API.Models;
-using Inventory.API.Services;
+using Inventory.API.Infrastructure.Data;
+using Inventory.API.Api.DTOs;
+using Inventory.API.Domain.Models;
+using Inventory.API.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory.API.Controllers
+namespace Inventory.API.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -35,7 +35,7 @@ namespace Inventory.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Product>> Create(CreateProcutDto dto)
+        public async Task<ActionResult<Product>> Create(CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);

@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory.API.DTOs
+namespace Inventory.API.Api.DTOs
 {
-    public class CreateProcutDto
+    public class CreateProductDto
     {
         [Required]
         [MaxLength(50)]

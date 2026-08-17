@@ -1,14 +1,14 @@
-using Inventory.API.Models;
-using Inventory.API.DTOs;
+using Inventory.API.Domain.Models;
+using Inventory.API.Api.DTOs;
 
 
-namespace Inventory.API.Services
+namespace Inventory.API.Application.Services
 {
     public interface IProductService
     {
         Task<IEnumerable<Product>> GetAllAsync();
         Task<Product?> GetByIdAsync(Guid id);
-        Task<Product> CreateAsync(CreateProcutDto dto);
+        Task<Product> CreateAsync(CreateProductDto dto);
 
     }
 }

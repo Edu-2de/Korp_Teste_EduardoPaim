@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Inventory.API.Data;
-using Inventory.API.Models;
-using Inventory.API.DTOs;
+using Inventory.API.Infrastructure.Data;
+using Inventory.API.Domain.Models;
+using Inventory.API.Api.DTOs;
 
-namespace Inventory.API.Services
+namespace Inventory.API.Application.Services
 {
     public class ProductService : IProductService
     {
@@ -24,15 +24,16 @@ namespace Inventory.API.Services
             return await _context.Products.FindAsync(id);
         }
 
-        public async Task<Product> CreateAsync(CreateProcutDto dto)
+        public async Task<Product> CreateAsync(CreateProductDto dto)
         {
-            var product = new Product
+            var codeExists = await _context.Products.AnyAsync(p => p.Code == dto.Code);
+            if (codeExists)
             {
-                Code = dto.Code,
-                Balance = dto.Balance,
-                Description = dto.Description
+                throw new InvalidOperationException
+                ($"Product with code '{dto.Code} already exists'");
+            }
 
-            };
+            var product = new Product(dto.Code, dto.Description, dto.Balance);
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
