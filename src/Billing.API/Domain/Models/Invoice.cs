@@ -20,11 +20,19 @@ namespace Billing.API.Domain.Models
         public void AddItem(Guid productId, int quantity)
         {
             if (Status != InvoiceStatus.Open)
-            {
                 throw new InvalidOperationException("Cannot add items to a closed invoice.");
+
+            var existingItem = _items.FirstOrDefault(item => item.ProductId == productId);
+
+            if (existingItem != null)
+            {
+                existingItem.IncreaseQuantity(quantity);
             }
-            var item = new InvoiceItem(Id, productId, quantity);
-            _items.Add(item);
+            else
+            {
+                var item = new InvoiceItem(Id, productId, quantity);
+                _items.Add(item);
+            }
         }
 
         public void Close()
@@ -40,5 +48,7 @@ namespace Billing.API.Domain.Models
             }
             Status = InvoiceStatus.Closed;
         }
+
+
     }
 }

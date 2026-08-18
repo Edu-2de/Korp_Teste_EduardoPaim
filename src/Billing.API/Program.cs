@@ -3,6 +3,9 @@ using Billing.API.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Shared.Kernel.Extensions;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
+using Billing.API.Infrastructure.Clients;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,17 @@ else
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 }
 
+var inventoryApiBaseUrl = builder.Configuration["InventoryApi:BaseUrl"]
+    ?? throw new InvalidOperationException("Configuration 'InventoryApi:BaseUrl' is missing.");
+
+builder.Services.AddHttpClient<IInventoryClient, InventoryClient>(client =>
+{
+    client.BaseAddress = new Uri(inventoryApiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+})
+.AddPolicyHandler(GetRetryPolicy())
+.AddPolicyHandler(GetCircuitBreakerPolicy());
+
 var app = builder.Build();
 
 app.UseSharedCorrelationId();
@@ -54,5 +68,22 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError() // 5xx e timeouts de rede
+        .WaitAndRetryAsync(3, retryAttempt =>
+            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))); // 2s, 4s, 8s
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(
+            handledEventsAllowedBeforeBreaking: 3,
+            durationOfBreak: TimeSpan.FromSeconds(30));
+}
 
 public partial class Program { }

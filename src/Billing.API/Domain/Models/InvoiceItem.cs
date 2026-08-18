@@ -20,5 +20,13 @@ namespace Billing.API.Domain.Models
             ProductId = productId;
             Quantity = quantity;
         }
+
+        public void IncreaseQuantity(int amount)
+        {
+            if (amount <= 0)
+                throw new ArgumentException("Amount must be greater than zero.");
+
+            Quantity += amount;
+        }
     }
 }
