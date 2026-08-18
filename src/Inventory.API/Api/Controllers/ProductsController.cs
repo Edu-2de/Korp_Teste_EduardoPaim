@@ -69,14 +69,24 @@ namespace Inventory.API.Api.Controllers
         /// </summary>
         /// <param name="id">Identificador (GUID) do produto.</param>
         /// <param name="dto">Quantidade a ser debitada.</param>
+        /// <param name="idempotencyKey"></param>
         [HttpPatch("{id}/decrease-balance")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> DecreaseBalance(Guid id, DecreaseBalanceDto dto)
+        public async Task<IActionResult> DecreaseBalance(
+            Guid id,
+            DecreaseBalanceDto dto,
+            [FromHeader(Name = "X-Idempotency-Key")] string? idempotencyKey
+        )
         {
-            await _productService.DecreaseBalanceAsync(id, dto.Quantity);
+            if (string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                throw new ArgumentException("X-Idempotency-Key header is required.");
+            }
+
+            await _productService.DecreaseBalanceAsync(id, dto.Quantity, idempotencyKey);
             return NoContent();
         }
 

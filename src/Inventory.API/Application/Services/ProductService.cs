@@ -37,14 +37,31 @@ namespace Inventory.API.Application.Services
             return product;
         }
 
-        public async Task DecreaseBalanceAsync(Guid productId, int quantity)
+        public async Task DecreaseBalanceAsync(Guid productId, int quantity, string idempotencyKey)
         {
+            var alreadyProcessed = await context.IdempotencyRecords.AnyAsync(r => r.Key == idempotencyKey);
+            if (alreadyProcessed) { return; }
+
             var product = await context.Products.FindAsync(productId)
                 ?? throw new KeyNotFoundException($"Product {productId} not found");
 
             product.DecreaseBalance(quantity);
 
-            await context.SaveChangesAsync();
+            context.IdempotencyRecords.Add(new IdempotencyRecord(idempotencyKey));
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsDuplicateKeyViolation(ex))
+            {
+                return;
+            }
+        }
+
+        private static bool IsDuplicateKeyViolation(DbUpdateException ex)
+        {
+            return ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505";
         }
 
         public async Task UpdateDescriptionAsync(Guid productId, string newDescription)
