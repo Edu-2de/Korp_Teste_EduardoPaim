@@ -83,5 +83,21 @@ namespace Billing.API.Api.Controllers
                 Quantity = item.Quantity
             }).ToList()
         };
+
+        /// <summary>
+        /// Imprime uma nota fiscal: debita o saldo de cada produto no Inventory.API
+        /// e atualiza o status da nota para "Closed" (Fechada). Só é permitido para
+        /// notas com status "Open" (Aberta).
+        /// </summary>
+        /// <param name="id">Identificador (GUID) da nota fiscal.</param>
+        [HttpPost("{id}/print")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Print(Guid id)
+        {
+            await _invoiceService.PrintAsync(id);
+            return NoContent();
+        }
     }
 }
