@@ -1,0 +1,18 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
+  <div class="field">
+    <label for="code">Código (opcional)</label>
+    <input id="code" pInputText formControlName="code" />
+  </div>
+
+  <div class="field">
+    <label for="description">Descrição *</label>
+    <input id="description" pInputText formControlName="description" />
+  </div>
+
+  <div class="field">
+    <label for="balance">Saldo *</label>
+    <p-inputNumber inputId="balance" formControlName="balance" [min]="0" />
+  </div>
+
+  <p-button type="submit" label="Cadastrar" [loading]="isSubmitting" [disabled]="form.invalid" />
+</form>

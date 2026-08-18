@@ -1,0 +1,29 @@
+<div class="product-page">
+  <h2>Cadastro de Produtos</h2>
+
+  <app-product-form (productCreated)="onProductCreated()" />
+
+  <h3>Produtos cadastrados</h3>
+
+  <p-table [value]="products()" [loading]="isLoading()" [paginator]="true" [rows]="10">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Código</th>
+        <th>Descrição</th>
+        <th>Saldo</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-product>
+      <tr>
+        <td>{{ product.code }}</td>
+        <td>{{ product.description }}</td>
+        <td>{{ product.balance }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3">Nenhum produto cadastrado ainda.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
