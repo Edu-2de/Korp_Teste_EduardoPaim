@@ -12,9 +12,7 @@ namespace Shared.Kernel.Extensions
         {
             builder.Host.UseSerilog((context, services, configuration) =>
             {
-                var minimumLevel = context.HostingEnvironment.IsEnvironment("Testing")
-                    ? LogEventLevel.Fatal
-                    : LogEventLevel.Information;
+                var minimumLevel = LogEventLevel.Information;
 
                 configuration
                     .MinimumLevel.Is(minimumLevel)

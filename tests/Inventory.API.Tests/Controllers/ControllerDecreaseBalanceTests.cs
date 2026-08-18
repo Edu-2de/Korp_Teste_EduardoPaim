@@ -14,6 +14,17 @@ namespace Inventory.API.Tests.Controllers
             _client = factory.CreateClient();
         }
 
+        private async Task<HttpResponseMessage> PatchDecreaseBalance(Guid productId, DecreaseBalanceDto dto, string? idempotencyKey = null)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/products/{productId}/decrease-balance")
+            {
+                Content = JsonContent.Create(dto)
+            };
+            request.Headers.Add("X-Idempotency-Key", idempotencyKey ?? Guid.NewGuid().ToString());
+
+            return await _client.SendAsync(request);
+        }
+
         [Fact]
         public async Task PATCH_DecreaseBalance_ShouldReturn204_WhenValid()
         {
@@ -21,9 +32,7 @@ namespace Inventory.API.Tests.Controllers
             var createResponse = await _client.PostAsJsonAsync("/api/products", dto);
             var created = await createResponse.Content.ReadFromJsonAsync<ProductResponseDto>();
 
-            var response = await _client.PatchAsJsonAsync(
-                $"/api/products/{created!.Id}/decrease-balance",
-                new DecreaseBalanceDto { Quantity = 3 });
+            var response = await PatchDecreaseBalance(created!.Id, new DecreaseBalanceDto { Quantity = 3 });
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -35,9 +44,7 @@ namespace Inventory.API.Tests.Controllers
             var createResponse = await _client.PostAsJsonAsync("/api/products", dto);
             var created = await createResponse.Content.ReadFromJsonAsync<ProductResponseDto>();
 
-            var response = await _client.PatchAsJsonAsync(
-                $"/api/products/{created!.Id}/decrease-balance",
-                new DecreaseBalanceDto { Quantity = 999 });
+            var response = await PatchDecreaseBalance(created!.Id, new DecreaseBalanceDto { Quantity = 999 });
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
@@ -45,9 +52,7 @@ namespace Inventory.API.Tests.Controllers
         [Fact]
         public async Task PATCH_DecreaseBalance_ShouldReturn404_WhenProductNotFound()
         {
-            var response = await _client.PatchAsJsonAsync(
-                $"/api/products/{Guid.NewGuid()}/decrease-balance",
-                new DecreaseBalanceDto { Quantity = 1 });
+            var response = await PatchDecreaseBalance(Guid.NewGuid(), new DecreaseBalanceDto { Quantity = 1 });
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -59,9 +64,7 @@ namespace Inventory.API.Tests.Controllers
             var createResponse = await _client.PostAsJsonAsync("/api/products", dto);
             var created = await createResponse.Content.ReadFromJsonAsync<ProductResponseDto>();
 
-            var response = await _client.PatchAsJsonAsync(
-                $"/api/products/{created!.Id}/decrease-balance",
-                new DecreaseBalanceDto { Quantity = 0 });
+            var response = await PatchDecreaseBalance(created!.Id, new DecreaseBalanceDto { Quantity = 0 });
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }

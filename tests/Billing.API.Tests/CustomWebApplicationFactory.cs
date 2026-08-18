@@ -1,20 +1,20 @@
-using Inventory.API.Infrastructure.Data;
+using Billing.API.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
 using Testcontainers.PostgreSql;
 using Xunit;
 
-namespace Inventory.API.Tests
+namespace Billing.API.Tests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
 
-
         private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
-            .WithDatabase("inventory_test_db")
+            .WithDatabase("billing_test_db")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
@@ -26,12 +26,12 @@ namespace Inventory.API.Tests
             builder.ConfigureServices(services =>
             {
                 var descriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<InventoryDbContext>));
+                    d => d.ServiceType == typeof(DbContextOptions<BillingDbContext>));
 
                 if (descriptor != null)
                     services.Remove(descriptor);
 
-                services.AddDbContext<InventoryDbContext>(options =>
+                services.AddDbContext<BillingDbContext>(options =>
                     options.UseNpgsql(_dbContainer.GetConnectionString()));
             });
         }
@@ -40,11 +40,11 @@ namespace Inventory.API.Tests
         {
             await _dbContainer.StartAsync();
 
-            var options = new DbContextOptionsBuilder<InventoryDbContext>()
+            var options = new DbContextOptionsBuilder<BillingDbContext>()
                 .UseNpgsql(_dbContainer.GetConnectionString())
                 .Options;
 
-            await using var context = new InventoryDbContext(options);
+            await using var context = new BillingDbContext(options);
             await context.Database.MigrateAsync();
         }
 

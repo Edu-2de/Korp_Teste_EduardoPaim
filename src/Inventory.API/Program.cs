@@ -28,16 +28,8 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IProductService, ProductService>();
 
-if (builder.Environment.IsEnvironment("Testing"))
-{
-    builder.Services.AddDbContext<InventoryDbContext>(options =>
-        options.UseInMemoryDatabase("IntegrationTestsDb"));
-}
-else
-{
-    builder.Services.AddDbContext<InventoryDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-}
+builder.Services.AddDbContext<InventoryDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

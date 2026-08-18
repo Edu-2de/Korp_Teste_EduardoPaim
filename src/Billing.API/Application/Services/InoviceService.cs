@@ -37,7 +37,10 @@ namespace Billing.API.Application.Services
                 .FirstOrDefaultAsync(i => i.Id == invoiceId)
                 ?? throw new KeyNotFoundException($"Invoice {invoiceId} not found");
 
-            invoice.AddItem(productId, quantity);
+            var newItem = invoice.AddItem(productId, quantity);
+
+            if (newItem != null)
+                context.InvoiceItems.Add(newItem);
 
             await context.SaveChangesAsync();
         }

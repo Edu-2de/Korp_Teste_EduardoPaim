@@ -11,6 +11,8 @@ namespace Billing.API.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Invoice>(entity =>
             {
                 entity.HasKey(i => i.Id);
@@ -27,17 +29,13 @@ namespace Billing.API.Infrastructure.Data
                     .FindNavigation(nameof(Invoice.Items))!
                     .SetPropertyAccessMode(PropertyAccessMode.Field);
 
-                entity.Property<uint>("xmin")
-                    .HasColumnName("xmin")
-                    .IsRowVersion();
             });
 
             modelBuilder.Entity<InvoiceItem>(entity =>
             {
                 entity.HasKey(item => item.Id);
+                entity.Property(item => item.Id).ValueGeneratedNever();
             });
-
-            base.OnModelCreating(modelBuilder);
         }
     }
 }

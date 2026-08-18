@@ -31,16 +31,8 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
-if (builder.Environment.IsEnvironment("Testing"))
-{
-    builder.Services.AddDbContext<BillingDbContext>(options =>
-        options.UseInMemoryDatabase("BillingIntegrationTestsDb"));
-}
-else
-{
-    builder.Services.AddDbContext<BillingDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-}
+builder.Services.AddDbContext<BillingDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var inventoryApiBaseUrl = builder.Configuration["InventoryApi:BaseUrl"]
     ?? throw new InvalidOperationException("Configuration 'InventoryApi:BaseUrl' is missing.");
@@ -64,6 +56,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseHttpsRedirection();
 app.MapControllers();
 
@@ -72,9 +69,9 @@ app.Run();
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions
-        .HandleTransientHttpError() // 5xx e timeouts de rede
+        .HandleTransientHttpError()
         .WaitAndRetryAsync(3, retryAttempt =>
-            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))); // 2s, 4s, 8s
+            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 }
 
 static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
