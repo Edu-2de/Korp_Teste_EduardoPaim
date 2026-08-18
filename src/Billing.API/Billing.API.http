@@ -1,6 +1,55 @@
-@Billing.API_HostAddress = http://localhost:5298
+@HostAddress = http://localhost:5298
+@InvoiceId = 00000000-0000-0000-0000-000000000000
+@ProductId = 11111111-1111-1111-1111-111111111111
 
-GET {{Billing.API_HostAddress}}/weatherforecast/
+### Criar nota fiscal - sucesso (status inicial Open, sem itens)
+POST {{HostAddress}}/api/invoices
+Content-Type: application/json
+
+### Listar todas as notas fiscais
+GET {{HostAddress}}/api/invoices
 Accept: application/json
 
-###
+### Buscar nota fiscal por id (troque o id abaixo por um id real retornado no POST)
+GET {{HostAddress}}/api/invoices/{{InvoiceId}}
+Accept: application/json
+
+### Buscar nota fiscal inexistente (espera 404)
+GET {{HostAddress}}/api/invoices/{{InvoiceId}}
+Accept: application/json
+
+### Adicionar item a uma nota fiscal - sucesso (espera 204, troque o id e o productId)
+POST {{HostAddress}}/api/invoices/{{InvoiceId}}/items
+Content-Type: application/json
+
+{
+  "productId": "{{ProductId}}",
+  "quantity": 2
+}
+
+### Adicionar item - nota fiscal inexistente (espera 404)
+POST {{HostAddress}}/api/invoices/11111111-1111-1111-1111-111111111111/items
+Content-Type: application/json
+
+{
+  "productId": "{{ProductId}}",
+  "quantity": 2
+}
+
+### Adicionar item - quantidade inválida (espera 400, validação do DTO)
+POST {{HostAddress}}/api/invoices/{{InvoiceId}}/items
+Content-Type: application/json
+
+{
+  "productId": "{{ProductId}}",
+  "quantity": 0
+}
+
+### Adicionar item - productId vazio (espera 400, validação do DTO)
+POST {{HostAddress}}/api/invoices/{{InvoiceId}}/items
+Content-Type: application/json
+
+{
+  "productId": "00000000-0000-0000-0000-000000000000",
+  "quantity": 1
+}

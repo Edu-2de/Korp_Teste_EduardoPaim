@@ -10,14 +10,9 @@ namespace Billing.API.Domain.Models
         public DateTime CreatedAt { get; private set; }
         public IReadOnlyCollection<InvoiceItem> Items => _items.AsReadOnly();
 
-        private Invoice() { }
-
-        public Invoice(int number)
+        public Invoice()
         {
-            if (number <= 0) { throw new ArgumentException("Number must be greater than zero."); }
-
             Id = Guid.NewGuid();
-            Number = number;
             Status = InvoiceStatus.Open;
             CreatedAt = DateTime.UtcNow;
         }
@@ -28,7 +23,6 @@ namespace Billing.API.Domain.Models
             {
                 throw new InvalidOperationException("Cannot add items to a closed invoice.");
             }
-
             var item = new InvoiceItem(Id, productId, quantity);
             _items.Add(item);
         }
@@ -44,7 +38,6 @@ namespace Billing.API.Domain.Models
             {
                 throw new InvalidOperationException("Cannot close an invoice without items.");
             }
-
             Status = InvoiceStatus.Closed;
         }
     }
