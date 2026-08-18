@@ -1,0 +1,89 @@
+services:
+
+  inventory-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - inventory-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inventory_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - korp-network
+
+  billing-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: billing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - billing-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d billing_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - korp-network
+
+  inventory-api:
+    build:
+      context: .
+      dockerfile: src/Inventory.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=inventory-db;Port=5432;Database=inventory_db;Username=postgres;Password=postgres"
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+    networks:
+      - korp-network
+
+  billing-api:
+    build:
+      context: .
+      dockerfile: src/Billing.API/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=billing-db;Port=5432;Database=billing_db;Username=postgres;Password=postgres"
+      InventoryApi__BaseUrl: "http://inventory-api:8080"
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      inventory-api:
+        condition: service_started
+    networks:
+      - korp-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/Gateway/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Production
+      ReverseProxy__Clusters__inventory-cluster__Destinations__destination1__Address: "http://inventory-api:8080"
+      ReverseProxy__Clusters__billing-cluster__Destinations__destination1__Address: "http://billing-api:8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - inventory-api
+      - billing-api
+    networks:
+      - korp-network
+
+networks:
+  korp-network:
+    driver: bridge
+
+volumes:
+  inventory-data:
+  billing-data:

@@ -61,6 +61,13 @@ if (!app.Environment.IsEnvironment("Testing"))
     app.UseHttpsRedirection();
 }
 
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+    await db.Database.MigrateAsync();
+}
+
 app.UseHttpsRedirection();
 app.MapControllers();
 
