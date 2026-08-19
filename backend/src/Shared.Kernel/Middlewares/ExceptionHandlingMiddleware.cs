@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Encodings.Web;
 
@@ -26,6 +27,7 @@ namespace Shared.Kernel.Middlewares
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
@@ -36,7 +38,15 @@ namespace Shared.Kernel.Middlewares
                 KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
                 InvalidOperationException => (HttpStatusCode.Conflict, exception.Message),
                 ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
-                _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+
+                DbUpdateConcurrencyException =>
+                    (HttpStatusCode.Conflict, "Este registro foi alterado por outra operação simultânea. Tente novamente."),
+
+                HttpRequestException =>
+                    (HttpStatusCode.ServiceUnavailable, "Um serviço do sistema está indisponível no momento. Tente novamente em instantes."),
+                TaskCanceledException =>
+                    (HttpStatusCode.ServiceUnavailable, "Um serviço do sistema demorou muito para responder. Tente novamente em instantes."),
+                _ => (HttpStatusCode.InternalServerError, "Ocorreu um erro inesperado. Tente novamente."),
             };
 
             var response = new ErrorResponse(message, (int)statusCode);

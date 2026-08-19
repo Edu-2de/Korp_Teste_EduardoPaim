@@ -1,1 +1,119 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--color-primary-200);
+  color: var(--color-primary-950);
+}
+
+.p-datatable {
+  font-family: var(--font-sans);
+
+  .p-datatable-thead > tr > th {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1.75rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+
+  .p-datatable-tbody > tr {
+    transition: background-color 0.15s ease;
+
+    > td {
+      border: none;
+      padding: 0.85rem 1.75rem;
+      color: var(--color-neutral-600);
+    }
+
+    > td:first-child {
+      border-top-left-radius: 14px;
+      border-bottom-left-radius: 14px;
+    }
+
+    > td:last-child {
+      border-top-right-radius: 14px;
+      border-bottom-right-radius: 14px;
+    }
+
+    &:hover > td {
+      background: var(--color-neutral-100);
+    }
+  }
+
+  .p-paginator {
+    border: none;
+    background: transparent;
+    padding-block: 0.75rem;
+    color: var(--color-neutral-700);
+
+    .p-paginator-page,
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      color: var(--color-neutral-700);
+    }
+  }
+}
+
+.p-tag {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.p-inputtext.search-input {
+  padding-left: 2.25rem;
+}
+
+.p-dialog {
+  max-width: calc(100vw - 2rem);
+}
+
+.p-dialog {
+  border: none;
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+
+  .p-dialog-header {
+    padding: 1.5rem 1.5rem 0;
+  }
+
+  .p-dialog-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .p-dialog-content {
+    padding: 1.25rem 1.5rem 1.5rem;
+    overflow-x: hidden;
+  }
+
+  .p-dialog-footer {
+    padding: 0 1.5rem 1.5rem;
+  }
+}
+
+.p-dialog-mask.p-overlay-mask {
+  background: color-mix(in srgb, var(--color-neutral-900), transparent 45%);
+  backdrop-filter: blur(2px);
+}
+
+.p-button {
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.p-button:not(.p-button-text):not(:disabled):hover {
+  transform: translateY(-1px);
+}

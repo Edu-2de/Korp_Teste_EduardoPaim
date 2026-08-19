@@ -11,14 +11,9 @@ namespace Inventory.API.Api.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductsController(IProductService productService) : ControllerBase
     {
-        private readonly IProductService _productService;
-
-        public ProductsController(IProductService productService)
-        {
-            _productService = productService;
-        }
+        private readonly IProductService _productService = productService;
 
         /// <summary>
         /// Lista todos os produtos cadastrados.
@@ -48,8 +43,7 @@ namespace Inventory.API.Api.Controllers
         }
 
         /// <summary>
-        /// Cria um novo produto. Se o código não for informado, um código é gerado automaticamente
-        /// no formato PROD-{timestamp}.
+        /// Cria um novo produto.
         /// </summary>
         /// <param name="dto">Dados do produto a ser criado.</param>
         [HttpPost]
@@ -69,7 +63,7 @@ namespace Inventory.API.Api.Controllers
         /// </summary>
         /// <param name="id">Identificador (GUID) do produto.</param>
         /// <param name="dto">Quantidade a ser debitada.</param>
-        /// <param name="idempotencyKey"></param>
+        /// <param name="idempotencyKey">Chave única da operação, para evitar débito duplicado em reenvios.</param>
         [HttpPatch("{id}/decrease-balance")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -105,12 +99,44 @@ namespace Inventory.API.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Atualiza o saldo em estoque de um produto existente para um valor absoluto.
+        /// </summary>
+        /// <param name="id">Identificador (GUID) do produto.</param>
+        /// <param name="dto">Novo saldo do produto.</param>
+        [HttpPatch("{id}/balance")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateBalance(Guid id, UpdateProductBalanceDto dto)
+        {
+            await _productService.UpdateBalanceAsync(id, dto.Balance);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Desativa um produto (soft delete) — ele some do catálogo de seleção em novas
+        /// notas fiscais, mas continua existindo para resolver descrição/código em notas
+        /// que já o referenciam. O saldo é preservado.
+        /// </summary>
+        /// <param name="id">Identificador (GUID) do produto.</param>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Deactivate(Guid id)
+        {
+            await _productService.DeactivateAsync(id);
+            return NoContent();
+        }
+
         private static ProductResponseDto ToResponseDto(Product product) => new()
         {
             Id = product.Id,
             Code = product.Code,
             Description = product.Description,
-            Balance = product.Balance
+            Balance = product.Balance,
+            IsActive = product.IsActive
         };
     }
 }

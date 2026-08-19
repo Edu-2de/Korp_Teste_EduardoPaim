@@ -6,33 +6,39 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
+    "test": "ng test"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
   "dependencies": {
+    "@angular/animations": "^21.2.20",
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
     "@angular/core": "^21.2.0",
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
-    "@angular/platform-server": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@primeng/themes": "^21.0.4",
-    "express": "^5.1.0",
+    "@tanstack/angular-query-experimental": "^5.101.4",
+    "axios": "^1.19.0",
+    "clsx": "^2.1.1",
+    "primeicons": "^8.0.0",
     "primeng": "^21.0.4",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tailwind-merge": "^3.6.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.16.2"
   },
   "devDependencies": {
     "@angular/build": "^21.2.21",
     "@angular/cli": "^21.2.21",
     "@angular/compiler-cli": "^21.2.0",
-    "@types/express": "^5.0.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.17.19",
     "jsdom": "^28.0.0",
+    "postcss": "^8.5.26",
     "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }

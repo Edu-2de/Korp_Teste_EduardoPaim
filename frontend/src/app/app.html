@@ -1,1 +1,66 @@
-<router-outlet></router-outlet>
+<app-loading-bar />
+<p-toast />
+
+<div class="min-h-screen bg-neutral-100 text-neutral-900">
+  <aside
+    class="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col justify-between bg-neutral-800 px-4 py-6 md:flex"
+  >
+    <div class="flex flex-col gap-8">
+      <div class="flex items-center gap-2.5 px-2">
+        <div class="leading-tight">
+          <p class="text-[14.5px] font-semibold tracking-tight text-white">Korp Billing</p>
+          <p class="text-[11px] text-neutral-300">Gestão de estoque</p>
+        </div>
+      </div>
+
+      <nav class="flex flex-col gap-1">
+        @for (link of navLinks; track link.path) {
+          <a
+            [routerLink]="link.path"
+            routerLinkActive="bg-primary-600 text-white shadow-sm"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="flex items-center gap-3 rounded-full px-3.5 py-2.5 text-[13.5px] font-medium text-neutral-300 no-underline transition-colors duration-200 hover:bg-white/10 hover:text-white"
+          >
+            <i class="pi {{ link.icon }} text-[15px]"></i>
+            {{ link.label }}
+          </a>
+        }
+      </nav>
+    </div>
+  </aside>
+
+  <header
+    class="sticky top-0 z-20 flex items-center gap-2 overflow-x-auto bg-neutral-800 px-4 py-3 sm:gap-4 sm:px-5 md:hidden"
+  >
+    <a routerLink="/products" class="flex shrink-0 items-center gap-2 no-underline">
+      <div
+        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-xs font-bold text-white"
+      >
+        K
+      </div>
+      <span
+        class="hidden text-[14px] font-semibold tracking-tight whitespace-nowrap text-white xs:inline"
+      >
+        Korp Billing
+      </span>
+    </a>
+    <nav class="flex shrink-0 items-center gap-1.5 text-[13px]">
+      @for (link of navLinks; track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="bg-primary-600 text-white"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="rounded-full px-2.5 py-1.5 font-medium whitespace-nowrap text-neutral-300 no-underline transition-colors hover:text-white"
+        >
+          {{ link.label }}
+        </a>
+      }
+    </nav>
+  </header>
+
+  <main class="md:pl-64">
+    <div class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

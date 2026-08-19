@@ -1,29 +1,232 @@
-<div class="product-page">
-  <h2>Cadastro de Produtos</h2>
+<div class="flex flex-col gap-8 animate-fade-in">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1.5">
+      <h1 class="text-[28px] font-semibold tracking-tight text-neutral-900">Produtos</h1>
+    </div>
+    <p-button label="Novo Produto" icon="pi pi-plus" [rounded]="true" routerLink="/products/new" />
+  </div>
 
-  <app-product-form (productCreated)="onProductCreated()" />
+  <section class="overflow-hidden rounded-3xl bg-neutral-50 shadow-card ring-1 ring-neutral-200/70">
+    <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 sm:px-7">
+      <h2 class="text-[13px] font-semibold tracking-wide text-neutral-700 uppercase">Produtos cadastrados</h2>
+      <span class="text-sm text-neutral-700">{{ displayedProducts().length }} produto(s)</span>
+    </div>
 
-  <h3>Produtos cadastrados</h3>
+    <div class="flex flex-col gap-3 px-6 pb-4 sm:flex-row sm:flex-wrap sm:items-center sm:px-7">
+      <div class="relative w-full sm:min-w-55 sm:flex-1">
+        <i class="pi pi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-neutral-400"></i>
+        <input
+          type="text"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          pInputText
+          placeholder="Buscar por nome ou código..."
+          class="search-input w-full"
+        />
+      </div>
+      <div class="flex gap-3">
+        <p-select
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          styleClass="w-1/2 sm:w-40"
+        />
+        <p-select
+          [options]="stockOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="stockFilter()"
+          (ngModelChange)="stockFilter.set($event)"
+          styleClass="w-1/2 sm:w-44"
+        />
+      </div>
+    </div>
 
-  <p-table [value]="products()" [loading]="isLoading()" [paginator]="true" [rows]="10">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Código</th>
-        <th>Descrição</th>
-        <th>Saldo</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-product>
-      <tr>
-        <td>{{ product.code }}</td>
-        <td>{{ product.description }}</td>
-        <td>{{ product.balance }}</td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="3">Nenhum produto cadastrado ainda.</td>
-      </tr>
-    </ng-template>
-  </p-table>
+    @if (productsQuery.isError()) {
+      <div
+        class="mx-6 mb-4 flex items-center justify-between gap-4 rounded-2xl bg-danger-50 px-4 py-3 text-sm text-danger-700 sm:mx-7"
+      >
+        <span>
+          <i class="pi pi-exclamation-triangle mr-1.5"></i>
+          Não foi possível carregar os produtos. O serviço de estoque pode estar indisponível no momento.
+        </span>
+        <button
+          type="button"
+          (click)="productsQuery.refetch()"
+          class="cursor-pointer border-0 bg-transparent p-0 font-medium text-danger-700 underline transition-opacity hover:opacity-70"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <div class="overflow-x-auto">
+    <p-table [value]="displayedProducts()" [loading]="productsQuery.isPending()" [paginator]="true" [rows]="8">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="min-w-50">Produto</th>
+          <th class="min-w-35 text-right">Saldo em estoque</th>
+          <th class="w-28"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-product>
+        <tr class="cursor-pointer" [class]="!product.isActive ? 'opacity-60' : ''" (click)="openEdit(product)">
+          <td>
+            <div class="flex items-center gap-3 py-0.5">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[12px] font-semibold text-primary-700"
+              >
+                {{ initials(product) }}
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-neutral-800">{{ product.description }}</span>
+                  @if (!product.isActive) {
+                    <span class="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-600 uppercase">
+                      Inativo
+                    </span>
+                  }
+                </div>
+                @if (product.code) {
+                  <span class="text-xs text-neutral-400">Cód. {{ product.code }}</span>
+                }
+              </div>
+            </div>
+          </td>
+          <td class="text-right">
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+              [class]="product.balance > 0 ? 'bg-success-50 text-success-700' : 'bg-warning-50 text-warning-700'"
+            >
+              <span
+                class="h-1.5 w-1.5 rounded-full"
+                [class]="product.balance > 0 ? 'bg-success-500' : 'bg-warning-500'"
+              ></span>
+              {{ product.balance }} un.
+            </span>
+          </td>
+          <td class="text-right">
+            <div class="flex items-center justify-end gap-1">
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                ariaLabel="Editar produto"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (onClick)="openEdit(product); $event.stopPropagation()"
+              />
+              @if (product.isActive) {
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="danger"
+                  ariaLabel="Excluir produto"
+                  pTooltip="Excluir"
+                  tooltipPosition="top"
+                  (onClick)="openDeactivate(product); $event.stopPropagation()"
+                />
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="py-14 text-center">
+            @if ((productsQuery.data() ?? []).length === 0) {
+              <i class="pi pi-inbox mb-2 block text-2xl text-neutral-300"></i>
+              <span class="text-sm text-neutral-400">Nenhum produto cadastrado ainda.</span>
+              <br />
+              <a routerLink="/products/new" class="mt-2 inline-block text-sm font-medium text-neutral-700 underline">
+                Cadastrar o primeiro produto
+              </a>
+            } @else {
+              <i class="pi pi-search mb-2 block text-2xl text-neutral-300"></i>
+              <span class="text-sm text-neutral-400">Nenhum produto encontrado com esses filtros.</span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    </div>
+  </section>
 </div>
+
+<p-dialog
+  header="Editar produto"
+  [visible]="!!editingProduct()"
+  (onHide)="closeEdit()"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="flex flex-col gap-5 pt-1">
+    <div class="flex flex-col gap-1.5">
+      <label for="edit-description" class="text-[13px] font-medium text-neutral-600">
+        Descrição <span class="text-danger-500">*</span>
+      </label>
+      <input id="edit-description" pInputText formControlName="description" class="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="edit-balance" class="text-[13px] font-medium text-neutral-600">
+        Saldo em estoque <span class="text-danger-500">*</span>
+      </label>
+      <p-inputNumber inputId="edit-balance" formControlName="balance" [min]="0" styleClass="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <p-button label="Cancelar" [text]="true" type="button" class="w-full sm:w-auto" (onClick)="closeEdit()" />
+      <p-button
+        type="submit"
+        label="Salvar"
+        [rounded]="true"
+        [loading]="editMutation.isPending()"
+        [disabled]="editForm.invalid"
+        class="w-full sm:w-auto"
+      />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Excluir produto"
+  [visible]="!!deactivatingProduct()"
+  (onHide)="closeDeactivate()"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '26rem' }"
+>
+  @if (deactivatingProduct(); as product) {
+    <div class="flex flex-col gap-5">
+      <p class="text-sm text-neutral-600">
+        Excluir <strong class="text-neutral-900">{{ product.description }}</strong>? Ele deixa de aparecer no
+        catálogo e no cadastro de novas notas fiscais, mas o saldo é preservado e notas fiscais existentes
+        continuam mostrando os dados dele normalmente.
+      </p>
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <p-button
+          label="Cancelar"
+          [text]="true"
+          type="button"
+          class="w-full sm:w-auto"
+          (onClick)="closeDeactivate()"
+        />
+        <p-button
+          label="Excluir produto"
+          icon="pi pi-trash"
+          severity="danger"
+          [rounded]="true"
+          [loading]="deactivateMutation.isPending()"
+          class="w-full sm:w-auto"
+          (onClick)="confirmDeactivate()"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>

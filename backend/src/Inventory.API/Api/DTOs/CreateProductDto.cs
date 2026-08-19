@@ -4,8 +4,9 @@ namespace Inventory.API.Api.DTOs
 {
     public class CreateProductDto
     {
+        [Required]
         [MaxLength(50)]
-        public string? Code { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(200)]

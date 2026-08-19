@@ -28,16 +28,13 @@ namespace Inventory.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task POST_Products_ShouldReturn201_AndGenerateCode_WhenCodeIsNotProvided()
+        public async Task POST_Products_ShouldReturn400_WhenCodeIsNotProvided()
         {
             var dto = new CreateProductDto { Description = "Sem código", Balance = 5 };
 
             var response = await _client.PostAsJsonAsync("/api/products", dto);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var created = await response.Content.ReadFromJsonAsync<ProductResponseDto>();
-            Assert.NotNull(created);
-            Assert.StartsWith("PROD-", created!.Code);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]

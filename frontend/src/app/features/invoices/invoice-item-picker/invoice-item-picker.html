@@ -1,0 +1,44 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-3">
+  <p-select
+    formControlName="productId"
+    [options]="products()"
+    optionLabel="description"
+    optionValue="id"
+    [filter]="true"
+    filterBy="code,description"
+    filterPlaceholder="Buscar por código ou descrição"
+    emptyMessage="Nenhum produto disponível para adicionar"
+    placeholder="Selecione um produto"
+    styleClass="w-full"
+  >
+    <ng-template #item let-product>
+      <div class="flex w-full items-center justify-between gap-3">
+        <span>{{ product.code ? product.code + ' — ' : '' }}{{ product.description }}</span>
+        <span class="text-xs text-neutral-400">{{ product.balance }} un.</span>
+      </div>
+    </ng-template>
+  </p-select>
+
+  <div class="flex flex-col gap-1.5">
+    <label class="text-[12px] font-medium text-neutral-500">Quantidade</label>
+    <p-inputNumber
+      formControlName="quantity"
+      [min]="1"
+      [max]="selectedProduct()?.balance ?? undefined"
+      styleClass="w-full"
+    />
+    @if (selectedProduct(); as product) {
+      <span class="text-xs text-neutral-400">Disponível: {{ product.balance }} un.</span>
+    }
+  </div>
+
+  <p-button
+    type="submit"
+    [label]="submitLabel()"
+    icon="pi pi-plus"
+    [rounded]="true"
+    [loading]="pending()"
+    [disabled]="form.invalid"
+    class="self-start"
+  />
+</form>

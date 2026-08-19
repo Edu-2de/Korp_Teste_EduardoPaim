@@ -11,9 +11,15 @@ namespace Billing.API.Domain.Models
 
         public InvoiceItem(Guid invoiceId, Guid productId, int quantity)
         {
-            if (productId == Guid.Empty) { throw new ArgumentException("ProductId is required."); }
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentException("ProductId is required.");
+            }
 
-            if (quantity <= 0) { throw new ArgumentException("Quantity must be greater than zero."); }
+            if (quantity <= 0)
+            {
+                throw new ArgumentException("Quantity must be greater than zero.");
+            }
 
             Id = Guid.NewGuid();
             InvoiceId = invoiceId;
@@ -24,7 +30,9 @@ namespace Billing.API.Domain.Models
         public void IncreaseQuantity(int amount)
         {
             if (amount <= 0)
+            {
                 throw new ArgumentException("Amount must be greater than zero.");
+            }
 
             Quantity += amount;
         }

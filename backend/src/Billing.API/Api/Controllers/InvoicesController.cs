@@ -70,19 +70,38 @@ namespace Billing.API.Api.Controllers
             return NoContent();
         }
 
-        private static InvoiceResponseDto ToResponseDto(Invoice invoice) => new()
+        /// <summary>
+        /// Remove um item de uma nota fiscal. Só é permitido enquanto a nota
+        /// estiver com status "Open" (Aberta) — ex.: para tirar um produto
+        /// adicionado por engano.
+        /// </summary>
+        /// <param name="id">Identificador (GUID) da nota fiscal.</param>
+        /// <param name="itemId">Identificador (GUID) do item a ser removido.</param>
+        [HttpDelete("{id}/items/{itemId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> RemoveItem(Guid id, Guid itemId)
         {
-            Id = invoice.Id,
-            Number = invoice.Number,
-            Status = invoice.Status.ToString(),
-            CreatedAt = invoice.CreatedAt,
-            Items = invoice.Items.Select(item => new InvoiceItemResponseDto
-            {
-                Id = item.Id,
-                ProductId = item.ProductId,
-                Quantity = item.Quantity
-            }).ToList()
-        };
+            await _invoiceService.RemoveItemAsync(id, itemId);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Exclui uma nota fiscal inteira, junto com seus itens. Só é permitido
+        /// enquanto a nota estiver com status "Open" (Aberta) — uma nota já
+        /// emitida não pode ser excluída.
+        /// </summary>
+        /// <param name="id">Identificador (GUID) da nota fiscal.</param>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _invoiceService.DeleteAsync(id);
+            return NoContent();
+        }
 
         /// <summary>
         /// Imprime uma nota fiscal: debita o saldo de cada produto no Inventory.API
@@ -99,5 +118,19 @@ namespace Billing.API.Api.Controllers
             await _invoiceService.PrintAsync(id);
             return NoContent();
         }
+
+        private static InvoiceResponseDto ToResponseDto(Invoice invoice) => new()
+        {
+            Id = invoice.Id,
+            Number = invoice.Number,
+            Status = invoice.Status.ToString(),
+            CreatedAt = invoice.CreatedAt,
+            Items = invoice.Items.Select(item => new InvoiceItemResponseDto
+            {
+                Id = item.Id,
+                ProductId = item.ProductId,
+                Quantity = item.Quantity
+            }).ToList()
+        };
     }
 }

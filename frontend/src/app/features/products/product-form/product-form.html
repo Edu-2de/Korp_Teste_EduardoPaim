@@ -1,18 +1,39 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
-  <div class="field">
-    <label for="code">Código (opcional)</label>
-    <input id="code" pInputText formControlName="code" />
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex w-full flex-col gap-5">
+  <div class="flex flex-col gap-1.5">
+    <label for="description" class="text-[13px] font-medium text-neutral-600">
+      Descrição <span class="text-danger-500">*</span>
+    </label>
+    <input
+      id="description"
+      pInputText
+      formControlName="description"
+      placeholder="Nome do produto"
+      class="w-full"
+    />
   </div>
 
-  <div class="field">
-    <label for="description">Descrição *</label>
-    <input id="description" pInputText formControlName="description" />
+  <div class="flex flex-col gap-1.5">
+    <label for="code" class="text-[13px] font-medium text-neutral-600">
+      Código <span class="text-danger-500">*</span>
+    </label>
+    <input id="code" pInputText formControlName="code" placeholder="Ex: PROD-001" class="w-full" />
   </div>
 
-  <div class="field">
-    <label for="balance">Saldo *</label>
-    <p-inputNumber inputId="balance" formControlName="balance" [min]="0" />
+  <div class="flex flex-col gap-1.5">
+    <label for="balance" class="text-[13px] font-medium text-neutral-600">
+      Saldo inicial <span class="text-danger-500">*</span>
+    </label>
+    <p-inputNumber inputId="balance" formControlName="balance" [min]="0" styleClass="w-full" />
   </div>
 
-  <p-button type="submit" label="Cadastrar" [loading]="isSubmitting" [disabled]="form.invalid" />
+  <div class="mt-2">
+    <p-button
+      type="submit"
+      label="Cadastrar produto"
+      icon="pi pi-plus"
+      [rounded]="true"
+      [loading]="createMutation.isPending()"
+      [disabled]="form.invalid"
+    />
+  </div>
 </form>

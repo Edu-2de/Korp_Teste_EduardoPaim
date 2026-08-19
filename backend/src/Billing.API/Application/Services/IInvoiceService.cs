@@ -8,6 +8,8 @@ namespace Billing.API.Application.Services
         Task<Invoice?> GetByIdAsync(Guid id);
         Task<IEnumerable<Invoice>> GetAllAsync();
         Task AddItemAsync(Guid invoiceId, Guid productId, int quantity);
+        Task RemoveItemAsync(Guid invoiceId, Guid itemId);
         Task PrintAsync(Guid invoiceId);
+        Task DeleteAsync(Guid invoiceId);
     }
 }

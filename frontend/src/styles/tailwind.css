@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+@theme static {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --breakpoint-xs: 22rem;
+
+  --color-primary-50: #fef1f4;
+  --color-primary-100: #fcdee5;
+  --color-primary-200: #ffb8c9;
+  --color-primary-300: #ff809e;
+  --color-primary-400: #ff426f;
+  --color-primary-500: #ff265a;
+  --color-primary-600: #ff0c46;
+  --color-primary-700: #e00035;
+  --color-primary-800: #b8002c;
+  --color-primary-900: #8a0021;
+  --color-primary-950: #570015;
+
+  --color-neutral-50: #f6f8f8;
+  --color-neutral-100: #edf0f2;
+  --color-neutral-200: #dae2e7;
+  --color-neutral-300: #bcc9d2;
+  --color-neutral-400: #91a7b6;
+  --color-neutral-500: #668599;
+  --color-neutral-600: #4e6574;
+  --color-neutral-700: #375467;
+  --color-neutral-800: #2b485a;
+  --color-neutral-900: #1e2e38;
+  --color-neutral-950: #121b21;
+
+  --color-success-50: var(--color-teal-50);
+  --color-success-100: var(--color-teal-100);
+  --color-success-500: var(--color-teal-500);
+  --color-success-700: var(--color-teal-700);
+
+  --color-warning-50: var(--color-amber-50);
+  --color-warning-100: var(--color-amber-100);
+  --color-warning-500: var(--color-amber-500);
+  --color-warning-700: var(--color-amber-700);
+
+  --color-danger-50: var(--color-red-50);
+  --color-danger-100: var(--color-red-100);
+  --color-danger-500: var(--color-red-500);
+  --color-danger-700: var(--color-red-700);
+
+  --color-info-50: #eff6fa;
+  --color-info-100: #dfecf6;
+  --color-info-200: #b7d8f0;
+  --color-info-300: #8cb2ca;
+  --color-info-500: #2470a8;
+  --color-info-700: #114b78;
+
+  --shadow-card: 0 1px 2px rgba(18, 27, 33, 0.04), 0 1px 1px rgba(18, 27, 33, 0.03);
+  --shadow-card-hover:
+    0 20px 40px -16px rgba(18, 27, 33, 0.16), 0 4px 8px -2px rgba(18, 27, 33, 0.06);
+  --shadow-panel: 0 24px 48px -16px rgba(18, 27, 33, 0.22);
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

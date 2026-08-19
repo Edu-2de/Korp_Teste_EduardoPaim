@@ -1,44 +1,418 @@
-<div class="invoice-page">
-  <div class="header">
-    <h2>Notas Fiscais</h2>
-    <p-button
-      label="Nova Nota"
-      icon="pi pi-plus"
-      [loading]="isCreating"
-      (onClick)="createInvoice()"
-    />
+<div class="flex flex-col gap-8 animate-fade-in">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1.5">
+      <h1 class="text-[28px] font-semibold tracking-tight text-neutral-900">Notas Fiscais</h1>
+    </div>
+    <p-button label="Nova Nota" icon="pi pi-plus" [rounded]="true" routerLink="/invoices/new" />
   </div>
 
-  <p-table [value]="invoices" [loading]="isLoading" [paginator]="true" [rows]="10">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Número</th>
-        <th>Status</th>
-        <th>Itens</th>
-        <th>Criada em</th>
-        <th></th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-invoice>
-      <tr>
-        <td>{{ invoice.number }}</td>
-        <td>
-          <p-tag
-            [value]="invoice.status === 'Open' ? 'Aberta' : 'Fechada'"
-            [severity]="invoice.status === 'Open' ? 'info' : 'success'"
-          />
-        </td>
-        <td>{{ invoice.items.length }}</td>
-        <td>{{ invoice.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-        <td>
-          <p-button label="Abrir" size="small" (onClick)="openInvoice(invoice)" />
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5">Nenhuma nota fiscal criada ainda.</td>
-      </tr>
-    </ng-template>
-  </p-table>
+  <section class="overflow-hidden rounded-3xl bg-neutral-50 shadow-card ring-1 ring-neutral-200/70">
+    <div class="flex flex-wrap items-center justify-between gap-2 px-6 py-4 sm:px-7">
+      <h2 class="text-[13px] font-semibold tracking-wide text-neutral-700 uppercase">
+        Notas emitidas
+      </h2>
+      <span class="text-sm text-neutral-700">{{ displayedInvoices().length }} nota(s)</span>
+    </div>
+
+    <div class="flex flex-col gap-3 px-6 pb-4 sm:flex-row sm:flex-wrap sm:items-center sm:px-7">
+      <div class="relative w-full sm:min-w-55 sm:flex-1">
+        <i
+          class="pi pi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-neutral-400"
+        ></i>
+        <input
+          type="text"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          pInputText
+          placeholder="Buscar por número da nota ou produto..."
+          class="search-input w-full"
+        />
+      </div>
+      <p-select
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+        styleClass="w-full sm:w-40"
+      />
+    </div>
+
+    @if (invoicesQuery.isError()) {
+      <div
+        class="mx-6 mb-4 flex items-center justify-between gap-4 rounded-2xl bg-danger-50 px-4 py-3 text-sm text-danger-700 sm:mx-7"
+      >
+        <span>
+          <i class="pi pi-exclamation-triangle mr-1.5"></i>
+          Não foi possível carregar as notas fiscais. O serviço de faturamento pode estar
+          indisponível no momento.
+        </span>
+        <button
+          type="button"
+          (click)="invoicesQuery.refetch()"
+          class="cursor-pointer border-0 bg-transparent p-0 font-medium text-danger-700 underline transition-opacity hover:opacity-70"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <div class="overflow-x-auto">
+      <p-table
+        [value]="displayedInvoices()"
+        [loading]="invoicesQuery.isPending()"
+        [paginator]="true"
+        [rows]="10"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="min-w-47.5">Nota fiscal</th>
+            <th class="min-w-27.5">Status</th>
+            <th class="min-w-22.5">Itens</th>
+            <th class="w-36 min-w-28"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-invoice>
+          <tr class="cursor-pointer" (click)="openEditItems(invoice)">
+            <td>
+              <div class="flex items-center gap-3 py-0.5">
+                <div
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-500"
+                >
+                  <i class="pi pi-file text-[14px]"></i>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-neutral-800"
+                    >Nota #{{ invoice.number }}</span
+                  >
+                  <span class="text-xs text-neutral-400">{{
+                    invoice.createdAt | date: 'dd/MM/yyyy · HH:mm'
+                  }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+                [class]="
+                  invoice.status === 'Open'
+                    ? 'bg-info-50 text-info-700'
+                    : 'bg-success-50 text-success-700'
+                "
+              >
+                <span
+                  class="h-1.5 w-1.5 rounded-full"
+                  [class]="invoice.status === 'Open' ? 'bg-info-500' : 'bg-success-500'"
+                ></span>
+                {{ invoice.status === 'Open' ? 'Aberta' : 'Fechada' }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600"
+              >
+                {{ invoice.items.length }} {{ invoice.items.length === 1 ? 'item' : 'itens' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <div class="flex items-center justify-end gap-1">
+                <p-button
+                  [icon]="invoice.status === 'Open' ? 'pi pi-pencil' : 'pi pi-eye'"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="secondary"
+                  [ariaLabel]="invoice.status === 'Open' ? 'Editar itens' : 'Ver itens'"
+                  [pTooltip]="invoice.status === 'Open' ? 'Editar itens' : 'Ver itens'"
+                  tooltipPosition="top"
+                  (onClick)="openEditItems(invoice); $event.stopPropagation()"
+                />
+                @if (invoice.status === 'Open') {
+                  <p-button
+                    icon="pi pi-send"
+                    [text]="true"
+                    [rounded]="true"
+                    severity="secondary"
+                    [disabled]="invoice.items.length === 0"
+                    ariaLabel="Emitir nota"
+                    pTooltip="Emitir nota"
+                    tooltipPosition="top"
+                    (onClick)="openPrint(invoice); $event.stopPropagation()"
+                  />
+                  <p-button
+                    icon="pi pi-trash"
+                    [text]="true"
+                    [rounded]="true"
+                    severity="danger"
+                    ariaLabel="Excluir nota"
+                    pTooltip="Excluir"
+                    tooltipPosition="top"
+                    (onClick)="openDelete(invoice); $event.stopPropagation()"
+                  />
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="py-14 text-center">
+              @if ((invoicesQuery.data() ?? []).length === 0) {
+                <i class="pi pi-file mb-2 block text-2xl text-neutral-300"></i>
+                <span class="text-sm text-neutral-400">Nenhuma nota fiscal criada ainda.</span>
+              } @else {
+                <i class="pi pi-search mb-2 block text-2xl text-neutral-300"></i>
+                <span class="text-sm text-neutral-400"
+                  >Nenhuma nota encontrada com esses filtros.</span
+                >
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </section>
 </div>
+
+<p-dialog
+  [visible]="!!editingInvoice()"
+  (onHide)="closeEditItems()"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '34rem' }"
+>
+  <ng-template #header>
+    @if (editingInvoice(); as invoice) {
+      <div class="flex flex-wrap items-center gap-y-1 gap-x-3 pr-6">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-500"
+        >
+          <i class="pi pi-file text-[15px]"></i>
+        </div>
+        <div class="flex min-w-0 flex-col">
+          <span class="text-[15px] font-semibold text-neutral-900">Nota #{{ invoice.number }}</span>
+          <span class="text-xs whitespace-nowrap text-neutral-400">
+            {{ invoice.createdAt | date: 'dd/MM/yyyy · HH:mm' }}
+          </span>
+        </div>
+        <span
+          class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+          [class]="
+            invoice.status === 'Open'
+              ? 'bg-info-50 text-info-700'
+              : 'bg-success-50 text-success-700'
+          "
+        >
+          <span
+            class="h-1.5 w-1.5 rounded-full"
+            [class]="invoice.status === 'Open' ? 'bg-info-500' : 'bg-success-500'"
+          ></span>
+          {{ invoice.status === 'Open' ? 'Aberta' : 'Fechada' }}
+        </span>
+      </div>
+    }
+  </ng-template>
+
+  @if (editingInvoice(); as invoice) {
+    <div class="flex flex-col gap-5">
+      @if (invoice.status === 'Open') {
+        <div
+          class="flex flex-col items-start gap-3 rounded-2xl bg-info-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p class="text-sm text-info-700">
+            Terminou de adicionar produtos? Emita a nota pra fechar e debitar o estoque.
+          </p>
+          <p-button
+            label="Emitir Nota"
+            icon="pi pi-send"
+            [rounded]="true"
+            [disabled]="invoice.items.length === 0"
+            class="w-full shrink-0 sm:w-auto"
+            (onClick)="closeEditItems(); openPrint(invoice)"
+          />
+        </div>
+
+        <div class="rounded-2xl bg-neutral-100 p-4">
+          <h3 class="mb-3 text-[12px] font-semibold tracking-wide text-neutral-500 uppercase">
+            Adicionar produto
+          </h3>
+          <app-invoice-item-picker
+            [products]="availableProducts()"
+            [pending]="addItemMutation.isPending()"
+            (picked)="addItem($event)"
+          />
+        </div>
+      }
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-[12px] font-semibold tracking-wide text-neutral-500 uppercase">
+            Itens lançados ({{ invoice.items.length }})
+          </h3>
+          @if (invoice.items.length > 0) {
+            <span class="text-xs text-neutral-400"
+              >{{ totalUnits(invoice.items) }} un. no total</span
+            >
+          }
+        </div>
+
+        @if (invoice.items.length === 0) {
+          <div
+            class="flex flex-col items-center gap-1 rounded-xl bg-neutral-100 px-4 py-8 text-center"
+          >
+            <i class="pi pi-inbox text-xl text-neutral-300"></i>
+            <span class="text-sm text-neutral-400">Nenhum item adicionado ainda.</span>
+          </div>
+        } @else {
+          <ul class="flex flex-col gap-1">
+            @for (item of invoice.items; track item.id) {
+              <li
+                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm hover:bg-neutral-100"
+              >
+                <span class="min-w-0 truncate text-neutral-700">
+                  @if (productById().get(item.productId); as product) {
+                    {{ product.code ? product.code + ' — ' : '' }}{{ product.description }}
+                  } @else {
+                    {{ item.productId }}
+                  }
+                </span>
+                <div class="flex shrink-0 items-center gap-3">
+                  <span class="font-medium text-neutral-800">{{ item.quantity }} un.</span>
+                  @if (invoice.status === 'Open') {
+                    <button
+                      type="button"
+                      (click)="removeItem(item.id)"
+                      aria-label="Remover produto"
+                      class="cursor-pointer rounded-full border-0 bg-transparent p-1 text-neutral-400 transition-colors hover:bg-danger-50 hover:text-danger-700"
+                    >
+                      <i class="pi pi-times text-xs"></i>
+                    </button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+</p-dialog>
+
+<p-dialog
+  [visible]="!!printingInvoice()"
+  (onHide)="closePrint()"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '28rem' }"
+>
+  <ng-template #header>
+    @if (printingInvoice(); as invoice) {
+      <div class="flex items-center gap-3 pr-6">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-info-50 text-info-700"
+        >
+          <i class="pi pi-send text-[15px]"></i>
+        </div>
+        <div class="flex min-w-0 flex-col">
+          <span class="text-[15px] font-semibold text-neutral-900"
+            >Emitir Nota #{{ invoice.number }}</span
+          >
+          <span class="block truncate text-xs text-neutral-400">
+            Criada em {{ invoice.createdAt | date: 'dd/MM/yyyy · HH:mm' }}
+          </span>
+        </div>
+      </div>
+    }
+  </ng-template>
+
+  @if (printingInvoice(); as invoice) {
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-[12px] font-semibold tracking-wide text-neutral-500 uppercase">
+            Resumo da nota ({{ invoice.items.length }}
+            {{ invoice.items.length === 1 ? 'produto' : 'produtos' }})
+          </h3>
+          <span class="text-xs text-neutral-400">{{ totalUnits(invoice.items) }} un. no total</span>
+        </div>
+        <ul class="flex flex-col gap-1 rounded-2xl bg-neutral-100 p-2">
+          @for (item of invoice.items; track item.id) {
+            <li class="flex items-center justify-between rounded-xl px-3 py-2 text-sm">
+              <span class="min-w-0 truncate text-neutral-700">
+                @if (productById().get(item.productId); as product) {
+                  {{ product.code ? product.code + ' — ' : '' }}{{ product.description }}
+                } @else {
+                  {{ item.productId }}
+                }
+              </span>
+              <span class="shrink-0 font-medium text-neutral-800">{{ item.quantity }} un.</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <p class="text-sm text-neutral-600">
+        Essa ação fecha a nota e debita o saldo dos produtos acima do estoque — não pode ser
+        desfeita.
+      </p>
+
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <p-button
+          label="Cancelar"
+          [text]="true"
+          type="button"
+          class="w-full sm:w-auto"
+          (onClick)="closePrint()"
+        />
+        <p-button
+          label="Confirmar emissão"
+          icon="pi pi-send"
+          [rounded]="true"
+          [loading]="printMutation.isPending()"
+          class="w-full sm:w-auto"
+          (onClick)="confirmPrint()"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>
+
+<p-dialog
+  header="Excluir nota fiscal"
+  [visible]="!!deletingInvoice()"
+  (onHide)="closeDelete()"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '26rem' }"
+>
+  @if (deletingInvoice(); as invoice) {
+    <div class="flex flex-col gap-5">
+      <p class="text-sm text-neutral-600">
+        Excluir a <strong class="text-neutral-900">Nota #{{ invoice.number }}</strong>
+        @if (invoice.items.length > 0) {
+          e os
+          <strong class="text-neutral-900">{{ invoice.items.length }} item(ns)</strong> lançados
+          nela
+        }
+        . Essa ação não pode ser desfeita.
+      </p>
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <p-button
+          label="Cancelar"
+          [text]="true"
+          type="button"
+          class="w-full sm:w-auto"
+          (onClick)="closeDelete()"
+        />
+        <p-button
+          label="Excluir nota"
+          icon="pi pi-trash"
+          severity="danger"
+          [rounded]="true"
+          [loading]="deleteMutation.isPending()"
+          class="w-full sm:w-auto"
+          (onClick)="confirmDelete()"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>

@@ -1,32 +1,38 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { apiClient } from '../http/api-client';
 import { AddInvoiceItemDto, Invoice } from '../models/invoice.model';
 
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
-  private readonly baseUrl = `${environment.apiUrl}/invoices`;
+  private readonly baseUrl = '/invoices';
 
-  constructor(private http: HttpClient) {}
-
-  getAll(): Observable<Invoice[]> {
-    return this.http.get<Invoice[]>(this.baseUrl);
+  getAll(): Promise<Invoice[]> {
+    return apiClient.get<Invoice[]>(this.baseUrl).then((res) => res.data);
   }
 
-  getById(id: string): Observable<Invoice> {
-    return this.http.get<Invoice>(`${this.baseUrl}/${id}`);
+  getById(id: string): Promise<Invoice> {
+    return apiClient.get<Invoice>(`${this.baseUrl}/${id}`).then((res) => res.data);
   }
 
-  create(): Observable<Invoice> {
-    return this.http.post<Invoice>(this.baseUrl, null);
+  create(): Promise<Invoice> {
+    return apiClient.post<Invoice>(this.baseUrl, null).then((res) => res.data);
   }
 
-  addItem(invoiceId: string, dto: AddInvoiceItemDto): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/${invoiceId}/items`, dto);
+  addItem(invoiceId: string, dto: AddInvoiceItemDto): Promise<void> {
+    return apiClient.post<void>(`${this.baseUrl}/${invoiceId}/items`, dto).then(() => undefined);
   }
 
-  print(invoiceId: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/${invoiceId}/print`, null);
+  removeItem(invoiceId: string, itemId: string): Promise<void> {
+    return apiClient
+      .delete<void>(`${this.baseUrl}/${invoiceId}/items/${itemId}`)
+      .then(() => undefined);
+  }
+
+  print(invoiceId: string): Promise<void> {
+    return apiClient.post<void>(`${this.baseUrl}/${invoiceId}/print`, null).then(() => undefined);
+  }
+
+  delete(invoiceId: string): Promise<void> {
+    return apiClient.delete<void>(`${this.baseUrl}/${invoiceId}`).then(() => undefined);
   }
 }

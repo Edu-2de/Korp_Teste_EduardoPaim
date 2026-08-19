@@ -1,8 +1,11 @@
-import { Component, output } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { QueryClient, injectMutation } from '@tanstack/angular-query-experimental';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { apiErrorMessage } from '../../../core/http/api-client';
 import { ProductService } from '../../../core/services/product.service';
 
 @Component({
@@ -13,16 +16,37 @@ import { ProductService } from '../../../core/services/product.service';
   styleUrl: './product-form.scss',
 })
 export class ProductForm {
-  productCreated = output<void>();
-  isSubmitting = false;
   form: FormGroup;
+
+  private queryClient = inject(QueryClient);
+
+  createMutation = injectMutation(() => ({
+    mutationFn: () => this.productService.create(this.form.value),
+    onSuccess: () => {
+      this.queryClient.invalidateQueries({ queryKey: ['products'] });
+      this.form.reset({ code: '', description: '', balance: 0 });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Produto criado',
+        detail: 'O produto foi cadastrado com sucesso.',
+      });
+    },
+    onError: (err) => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro ao criar produto',
+        detail: apiErrorMessage(err, 'Não foi possível cadastrar o produto.'),
+      });
+    },
+  }));
 
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private messageService: MessageService,
   ) {
     this.form = this.fb.group({
-      code: [''],
+      code: ['', Validators.required],
       description: ['', Validators.required],
       balance: [0, [Validators.required, Validators.min(0)]],
     });
@@ -30,18 +54,6 @@ export class ProductForm {
 
   onSubmit(): void {
     if (this.form.invalid) return;
-
-    this.isSubmitting = true;
-
-    this.productService.create(this.form.value as any).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.form.reset({ code: '', description: '', balance: 0 });
-        this.productCreated.emit();
-      },
-      error: () => {
-        this.isSubmitting = false;
-      },
-    });
+    this.createMutation.mutate();
   }
 }

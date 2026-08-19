@@ -39,10 +39,42 @@ namespace Billing.API.Application.Services
                 ?? throw new KeyNotFoundException($"Invoice {invoiceId} not found");
 
             var newItem = invoice.AddItem(productId, quantity);
-
             if (newItem != null)
+            {
                 context.InvoiceItems.Add(newItem);
+            }
 
+            await context.SaveChangesAsync();
+        }
+
+        public async Task RemoveItemAsync(Guid invoiceId, Guid itemId)
+        {
+            var invoice = await context.Invoices
+                .Include(i => i.Items)
+                .FirstOrDefaultAsync(i => i.Id == invoiceId)
+                ?? throw new KeyNotFoundException($"Invoice {invoiceId} not found");
+
+            var item = invoice.Items.FirstOrDefault(i => i.Id == itemId)
+                ?? throw new KeyNotFoundException($"Item {itemId} not found in invoice {invoiceId}");
+
+            invoice.RemoveItem(itemId);
+            context.InvoiceItems.Remove(item);
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid invoiceId)
+        {
+            var invoice = await context.Invoices
+                .FirstOrDefaultAsync(i => i.Id == invoiceId)
+                ?? throw new KeyNotFoundException($"Invoice {invoiceId} not found");
+
+            if (invoice.Status != InvoiceStatus.Open)
+            {
+                throw new InvalidOperationException("Only invoices with status Open can be deleted.");
+            }
+
+            context.Invoices.Remove(invoice);
             await context.SaveChangesAsync();
         }
 
@@ -54,7 +86,9 @@ namespace Billing.API.Application.Services
                 ?? throw new KeyNotFoundException($"Invoice {invoiceId} not found");
 
             if (invoice.Status != InvoiceStatus.Open)
+            {
                 throw new InvalidOperationException("Only invoices with status Open can be printed.");
+            }
 
             foreach (var item in invoice.Items)
             {

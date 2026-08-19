@@ -38,8 +38,12 @@ services:
       dockerfile: src/Inventory.API/Dockerfile
     environment:
       ASPNETCORE_URLS: http://+:8080
-      ASPNETCORE_ENVIRONMENT: Production
+      # Development (não Production) de propósito: é o que liga o Swagger
+      # UI (ver `if (app.Environment.IsDevelopment())` no Program.cs).
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=inventory-db;Port=5432;Database=inventory_db;Username=postgres;Password=postgres"
+    ports:
+      - "5254:8080"
     depends_on:
       inventory-db:
         condition: service_healthy
@@ -52,9 +56,11 @@ services:
       dockerfile: src/Billing.API/Dockerfile
     environment:
       ASPNETCORE_URLS: http://+:8080
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=billing-db;Port=5432;Database=billing_db;Username=postgres;Password=postgres"
       InventoryApi__BaseUrl: "http://inventory-api:8080"
+    ports:
+      - "5298:8080"
     depends_on:
       billing-db:
         condition: service_healthy
@@ -77,6 +83,16 @@ services:
     depends_on:
       - inventory-api
       - billing-api
+    networks:
+      - korp-network
+
+  frontend:
+    build:
+      context: ../frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - gateway
     networks:
       - korp-network
 

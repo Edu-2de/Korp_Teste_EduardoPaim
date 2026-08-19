@@ -3,10 +3,11 @@ export interface Product {
   code: string;
   description: string;
   balance: number;
+  isActive: boolean;
 }
 
 export interface CreateProductDto {
-  code?: string;
+  code: string;
   description: string;
   balance: number;
 }

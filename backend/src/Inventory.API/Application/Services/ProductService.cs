@@ -19,17 +19,13 @@ namespace Inventory.API.Application.Services
 
         public async Task<Product> CreateAsync(CreateProductDto dto)
         {
-            var code = string.IsNullOrWhiteSpace(dto.Code)
-                ? GenerateProductCode()
-                : dto.Code;
-
-            var codeExists = await context.Products.AnyAsync(p => p.Code == code);
+            var codeExists = await context.Products.AnyAsync(p => p.Code == dto.Code && p.IsActive);
             if (codeExists)
             {
-                throw new InvalidOperationException($"Product with code '{code}' already exists");
+                throw new InvalidOperationException($"Product with code '{dto.Code}' already exists");
             }
 
-            var product = new Product(code, dto.Description, dto.Balance);
+            var product = new Product(dto.Code, dto.Description, dto.Balance);
 
             context.Products.Add(product);
             await context.SaveChangesAsync();
@@ -74,9 +70,24 @@ namespace Inventory.API.Application.Services
             await context.SaveChangesAsync();
         }
 
-        private static string GenerateProductCode()
+        public async Task UpdateBalanceAsync(Guid productId, int newBalance)
         {
-            return $"PROD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+            var product = await context.Products.FindAsync(productId)
+                ?? throw new KeyNotFoundException($"Product {productId} not found");
+
+            product.UpdateBalance(newBalance);
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task DeactivateAsync(Guid productId)
+        {
+            var product = await context.Products.FindAsync(productId)
+                ?? throw new KeyNotFoundException($"Product {productId} not found");
+
+            product.Deactivate();
+
+            await context.SaveChangesAsync();
         }
     }
 }

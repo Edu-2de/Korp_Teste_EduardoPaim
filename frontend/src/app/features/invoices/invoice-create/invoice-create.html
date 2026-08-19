@@ -1,0 +1,74 @@
+<div class="mx-auto flex w-full max-w-2xl flex-col gap-6 animate-fade-in">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="flex w-fit cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+  >
+    <i class="pi pi-arrow-left text-xs"></i>
+    Voltar para notas fiscais
+  </button>
+
+  <div class="flex flex-col gap-1.5">
+    <h1 class="text-[28px] font-semibold tracking-tight text-neutral-900">Nova nota fiscal</h1>
+    <p class="text-sm text-neutral-500">Adicione ao menos um produto para criar a nota.</p>
+  </div>
+
+  <section class="rounded-3xl bg-neutral-50 p-6 shadow-card ring-1 ring-neutral-200/70 sm:p-8">
+    <div class="flex flex-col gap-5">
+      <div class="rounded-2xl bg-neutral-100 p-4">
+        <h2 class="mb-3 text-[12px] font-semibold tracking-wide text-neutral-500 uppercase">Adicionar produto</h2>
+        <app-invoice-item-picker [products]="availableProducts()" (picked)="addDraftItem($event)" />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h2 class="text-[12px] font-semibold tracking-wide text-neutral-500 uppercase">
+            Produtos selecionados ({{ draftItems().length }})
+          </h2>
+          @if (draftItems().length > 0) {
+            <span class="text-xs text-neutral-400">{{ totalUnits() }} un. no total</span>
+          }
+        </div>
+
+        @if (draftItems().length === 0) {
+          <div class="flex flex-col items-center gap-1 rounded-xl bg-neutral-100 px-4 py-8 text-center">
+            <i class="pi pi-inbox text-xl text-neutral-300"></i>
+            <span class="text-sm text-neutral-400">Nenhum produto adicionado ainda.</span>
+          </div>
+        } @else {
+          <ul class="flex flex-col gap-1">
+            @for (item of draftItems(); track item.product.id) {
+              <li class="flex items-center justify-between rounded-xl px-3 py-2 text-sm hover:bg-neutral-100">
+                <span class="min-w-0 truncate text-neutral-700">
+                  {{ item.product.code ? item.product.code + ' — ' : '' }}{{ item.product.description }}
+                </span>
+                <div class="flex shrink-0 items-center gap-3">
+                  <span class="font-medium text-neutral-800">{{ item.quantity }} un.</span>
+                  <button
+                    type="button"
+                    (click)="removeDraftItem(item.product.id)"
+                    aria-label="Remover produto"
+                    class="cursor-pointer rounded-full border-0 bg-transparent p-1 text-neutral-400 transition-colors hover:bg-danger-50 hover:text-danger-700"
+                  >
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="border-t border-neutral-200 pt-5">
+        <p-button
+          label="Criar nota"
+          icon="pi pi-check"
+          [rounded]="true"
+          [loading]="createMutation.isPending()"
+          [disabled]="draftItems().length === 0"
+          (onClick)="submitCreate()"
+        />
+      </div>
+    </div>
+  </section>
+</div>

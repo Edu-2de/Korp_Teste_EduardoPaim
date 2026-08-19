@@ -1,0 +1,21 @@
+<div class="mx-auto flex w-full max-w-lg flex-col gap-6 animate-fade-in">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="flex w-fit cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900"
+  >
+    <i class="pi pi-arrow-left text-xs"></i>
+    Voltar para produtos
+  </button>
+
+  <div class="flex flex-col gap-1.5">
+    <h1 class="text-[28px] font-semibold tracking-tight text-neutral-900">Novo produto</h1>
+    <p class="text-sm text-neutral-500">
+      Cadastre um novo produto no estoque. Você pode continuar adicionando outros logo em seguida.
+    </p>
+  </div>
+
+  <section class="rounded-3xl bg-neutral-50 p-6 shadow-card ring-1 ring-neutral-200/70 sm:p-8">
+    <app-product-form />
+  </section>
+</div>

@@ -1,20 +1,32 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { apiClient } from '../http/api-client';
 import { CreateProductDto, Product } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private readonly baseUrl = `${environment.apiUrl}/products`;
+  private readonly baseUrl = '/products';
 
-  constructor(private http: HttpClient) {}
-
-  getAll(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.baseUrl);
+  getAll(): Promise<Product[]> {
+    return apiClient.get<Product[]>(this.baseUrl).then((res) => res.data);
   }
 
-  create(dto: CreateProductDto): Observable<Product> {
-    return this.http.post<Product>(this.baseUrl, dto);
+  create(dto: CreateProductDto): Promise<Product> {
+    return apiClient.post<Product>(this.baseUrl, dto).then((res) => res.data);
+  }
+
+  updateDescription(id: string, description: string): Promise<void> {
+    return apiClient
+      .patch<void>(`${this.baseUrl}/${id}/description`, { description })
+      .then(() => undefined);
+  }
+
+  updateBalance(id: string, balance: number): Promise<void> {
+    return apiClient
+      .patch<void>(`${this.baseUrl}/${id}/balance`, { balance })
+      .then(() => undefined);
+  }
+
+  deactivate(id: string): Promise<void> {
+    return apiClient.delete<void>(`${this.baseUrl}/${id}`).then(() => undefined);
   }
 }

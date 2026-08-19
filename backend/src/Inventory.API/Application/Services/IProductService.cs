@@ -12,6 +12,8 @@ namespace Inventory.API.Application.Services
         Task DecreaseBalanceAsync(Guid productId, int quantity, string idempotencyKey);
 
         Task UpdateDescriptionAsync(Guid productId, string newDescription);
+        Task UpdateBalanceAsync(Guid productId, int newBalance);
+        Task DeactivateAsync(Guid productId);
 
     }
 }

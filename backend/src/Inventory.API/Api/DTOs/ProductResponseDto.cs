@@ -6,5 +6,6 @@ namespace Inventory.API.Api.DTOs
         public string Code { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Balance { get; set; }
+        public bool IsActive { get; set; }
     }
 }
